@@ -1,0 +1,9 @@
+<resources>
+    <dimen name="common_text_smaller">10sp</dimen>
+    <dimen name="common_text_small">12sp</dimen>
+    <dimen name="common_text_normal">13sp</dimen>
+    <dimen name="common_text_large">17sp</dimen>
+    <dimen name="common_text_xlarge">19sp</dimen>
+    <dimen name="common_text_xxlarge">24sp</dimen>
+    <dimen name="common_primary_button_height">45dp</dimen>
+</resources>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#000000</color>
+
+    <color name="common_white">#FFFFFF</color>
+    <color name="common_red">#ec1c24</color>
+    <color name="common_red_dark">#AC1A1F</color>
+
+    <color name="common_primary_color">@color/common_red</color>
+    <color name="common_primary_dark_color">@color/common_red_dark</color>
+
+    <color name="icActive">#FFFFFFFF</color>
+    <color name="icFocused">#DDFFFFFF</color>
+    <color name="icPressed">#AAFFFFFF</color>
+</resources>

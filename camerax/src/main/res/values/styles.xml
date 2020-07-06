@@ -1,0 +1,26 @@
+<resources>
+
+    <style name="AppTheme" parent="Theme.MaterialComponents.Light" />
+
+    <style name="AppTheme.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+
+    <style name="MButton">
+        <item name="android:textStyle">normal</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:gravity">center</item>
+    </style>
+
+    <style name="MButton.Primary">
+        <item name="android:background">@drawable/bg_primary_button</item>
+        <item name="android:textColor">@color/common_white</item>
+        <item name="android:textSize">@dimen/common_text_large</item>
+        <item name="android:layout_height">@dimen/common_primary_button_height</item>
+    </style>
+</resources>
