@@ -138,6 +138,7 @@ class CameraFragment : Fragment() {
 
                         override fun onError(exception: ImageCaptureException) {
                             XCamera.instance.cameraListener?.onFailure(exception.message)
+                            requireActivity().finish()
                         }
                     })
 

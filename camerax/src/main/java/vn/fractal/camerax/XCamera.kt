@@ -1,6 +1,7 @@
 package vn.fractal.camerax
 
 import android.content.Context
+import android.graphics.Bitmap
 
 
 class XCamera private constructor() {
@@ -11,6 +12,7 @@ class XCamera private constructor() {
     var imageCaption: String? = null
     var cameraListener: CameraListener? = null
     var imagePath: String? = "CameraX"
+    var compressFormat: Bitmap.CompressFormat = Bitmap.CompressFormat.JPEG
 
     companion object {
         val instance: XCamera by lazy { Holder.INSTANCE }
@@ -21,12 +23,14 @@ class XCamera private constructor() {
         listener: CameraListener,
         isBack: Boolean? = true,
         imagePath: String? = "CameraX",
-        imageCaption: String? = null
+        imageCaption: String? = null,
+        compressFormat: Bitmap.CompressFormat = Bitmap.CompressFormat.JPEG
     ) {
         CameraActivity.startCamera(context, isBack)
         this.cameraListener = listener
         this.imagePath = imagePath
         this.imageCaption = imageCaption
+        this.compressFormat = compressFormat
     }
 
     interface CameraListener {
