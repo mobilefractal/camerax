@@ -44,7 +44,7 @@ class CameraFragment : Fragment() {
     private var camera: Camera? = null
 
 
-    private val mDx = MediaActionSound()
+//    private val mDx = MediaActionSound()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -56,7 +56,7 @@ class CameraFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        mDx.load(SHUTTER_CLICK)
+//        mDx.load(SHUTTER_CLICK)
         container = view as ConstraintLayout
         viewFinder = container.findViewById(R.id.view_finder)
 
@@ -103,7 +103,7 @@ class CameraFragment : Fragment() {
         // Listener for button used to capture photo
         controls.findViewById<ImageView>(R.id.capture_button).setOnClickListener {
             it.delay(3000)
-            mDx.play(SHUTTER_CLICK)
+//            mDx.play(SHUTTER_CLICK)
             // Create output file to hold the image
             // Get a stable reference of the modifiable image capture use case
             imageCapture?.let { imageCapture ->
