@@ -31,6 +31,7 @@ import kotlin.math.min
 class CameraFragment : Fragment() {
 
     private var isTurnOnFlash = false
+
     /** Blocking camera operations are performed using this executor */
     private val cameraExecutor = Executors.newSingleThreadExecutor()
 
@@ -42,9 +43,10 @@ class CameraFragment : Fragment() {
     private var lensFacing: Int = CameraSelector.LENS_FACING_BACK
     private var preview: Preview? = null
     private var camera: Camera? = null
+    private var cameraProvider: ProcessCameraProvider? = null
 
 
-//    private val mDx = MediaActionSound()
+    private val mDx = MediaActionSound()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -56,7 +58,7 @@ class CameraFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-//        mDx.load(SHUTTER_CLICK)
+        mDx.load(SHUTTER_CLICK)
         container = view as ConstraintLayout
         viewFinder = container.findViewById(R.id.view_finder)
 
@@ -70,10 +72,36 @@ class CameraFragment : Fragment() {
             // Build UI controls
             updateCameraUi()
 
-            // Bind use cases
-            bindCameraUseCases()
+            // Set up the camera and its use cases
+            setUpCamera()
         }
 
+    }
+
+    private fun setUpCamera() {
+        val cameraProviderFuture = ProcessCameraProvider.getInstance(requireContext())
+        cameraProviderFuture.addListener(Runnable {
+
+            // CameraProvider
+            cameraProvider = cameraProviderFuture.get()
+
+            // Select lensFacing depending on the available cameras
+            when {
+                hasBackCamera() -> {
+                    lensFacing = CameraSelector.LENS_FACING_BACK
+                }
+                hasFrontCamera() -> {
+                    lensFacing = CameraSelector.LENS_FACING_FRONT
+                }
+                else -> {
+                    XCamera.instance.cameraListener?.onFailure("Back and front camera are unavailable")
+                    requireActivity().finish()
+                }
+            }
+
+            // Build and bind the camera use cases
+            bindCameraUseCases()
+        }, ContextCompat.getMainExecutor(requireContext()))
     }
 
     /** Method used to re-draw the camera UI controls, called every time configuration changes. */
@@ -103,7 +131,9 @@ class CameraFragment : Fragment() {
         // Listener for button used to capture photo
         controls.findViewById<ImageView>(R.id.capture_button).setOnClickListener {
             it.delay(3000)
-//            mDx.play(SHUTTER_CLICK)
+            if (XCamera.instance.isEnableSound == true) {
+                mDx.play(SHUTTER_CLICK)
+            }
             // Create output file to hold the image
             // Get a stable reference of the modifiable image capture use case
             imageCapture?.let { imageCapture ->
@@ -154,48 +184,53 @@ class CameraFragment : Fragment() {
         val screenAspectRatio = aspectRatio(metrics.widthPixels, metrics.heightPixels)
 
         val rotation = viewFinder.display.rotation
-        // Bind the CameraProvider to the LifeCycleOwner
-        val cameraSelector = CameraSelector.Builder().requireLensFacing(lensFacing).build()
-        val cameraProviderFuture = ProcessCameraProvider.getInstance(requireContext())
-        cameraProviderFuture.addListener(Runnable {
-            // CameraProvider
-            val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
 
-            // Preview
-            preview = Preview.Builder()
-                // We request aspect ratio but no resolution
-                .setTargetAspectRatio(screenAspectRatio)
-                // Set initial target rotation
-                .setTargetRotation(rotation)
-                .build()
+        // CameraProvider
+        if(cameraProvider == null){
+            XCamera.instance.cameraListener?.onFailure("Camera initialization failed.")
+            requireActivity().finish()
+        }
+
+        // CameraSelector
+        val cameraSelector = CameraSelector.Builder().requireLensFacing(lensFacing).build()
+
+        // Preview
+        preview = Preview.Builder()
+            // We request aspect ratio but no resolution
+            .setTargetAspectRatio(screenAspectRatio)
+            // Set initial target rotation
+            .setTargetRotation(rotation)
+            .build()
+
+        // ImageCapture
+        imageCapture = ImageCapture.Builder()
+            .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+            // We request aspect ratio but no resolution to match preview config, but letting
+            // CameraX optimize for whatever specific resolution best fits our use cases
+            .setTargetAspectRatio(screenAspectRatio)
+            // Set initial target rotation, we will have to call this again if rotation changes
+            // during the lifecycle of this use case
+            .setTargetRotation(rotation)
+            .build()
+
+        // Must unbind the use-cases before rebinding them
+        cameraProvider?.unbindAll()
+
+        try {
+            // A variable number of use-cases can be passed here -
+            // camera provides access to CameraControl & CameraInfo
+            camera = cameraProvider?.bindToLifecycle(
+                this, cameraSelector, preview, imageCapture
+            )
 
             // Attach the viewfinder's surface provider to preview use case
-            preview?.setSurfaceProvider(viewFinder.createSurfaceProvider())
-
-            // ImageCapture
-            imageCapture = ImageCapture.Builder()
-                .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
-                // We request aspect ratio but no resolution to match preview config, but letting
-                // CameraX optimize for whatever specific resolution best fits our use cases
-                .setTargetAspectRatio(screenAspectRatio)
-                // Set initial target rotation, we will have to call this again if rotation changes
-                // during the lifecycle of this use case
-                .setTargetRotation(rotation)
-                .build()
-
-            // Must unbind the use-cases before rebinding them
-            cameraProvider.unbindAll()
-            try {
-                // A variable number of use-cases can be passed here -
-                // camera provides access to CameraControl & CameraInfo
-                camera = cameraProvider.bindToLifecycle(
-                    this, cameraSelector, preview, imageCapture
-                )
-            } catch (exc: Exception) {
-                Log.e(TAG, "Use case binding failed", exc)
-            }
-
-        }, ContextCompat.getMainExecutor(requireContext()))
+            preview?.setSurfaceProvider(viewFinder.surfaceProvider)
+        } catch (exc: Exception) {
+            val msg = "Use case binding failed"
+            Log.e(TAG, msg, exc)
+            XCamera.instance.cameraListener?.onFailure(exc.message)
+            requireActivity().finish()
+        }
     }
 
     /**
@@ -244,6 +279,16 @@ class CameraFragment : Fragment() {
             return AspectRatio.RATIO_4_3
         }
         return AspectRatio.RATIO_16_9
+    }
+
+    /** Returns true if the device has an available back camera. False otherwise */
+    private fun hasBackCamera(): Boolean {
+        return cameraProvider?.hasCamera(CameraSelector.DEFAULT_BACK_CAMERA) ?: false
+    }
+
+    /** Returns true if the device has an available front camera. False otherwise */
+    private fun hasFrontCamera(): Boolean {
+        return cameraProvider?.hasCamera(CameraSelector.DEFAULT_FRONT_CAMERA) ?: false
     }
 
     companion object {

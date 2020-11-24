@@ -13,6 +13,7 @@ class XCamera private constructor() {
     var cameraListener: CameraListener? = null
     var imagePath: String? = "CameraX"
     var compressFormat: Bitmap.CompressFormat = Bitmap.CompressFormat.JPEG
+    var isEnableSound: Boolean? = false
 
     companion object {
         val instance: XCamera by lazy { Holder.INSTANCE }
@@ -24,13 +25,15 @@ class XCamera private constructor() {
         isBack: Boolean? = true,
         imagePath: String? = "CameraX",
         imageCaption: String? = null,
-        compressFormat: Bitmap.CompressFormat = Bitmap.CompressFormat.JPEG
+        compressFormat: Bitmap.CompressFormat = Bitmap.CompressFormat.JPEG,
+        isEnableSound: Boolean? = false
     ) {
         CameraActivity.startCamera(context, isBack)
         this.cameraListener = listener
         this.imagePath = imagePath
         this.imageCaption = imageCaption
         this.compressFormat = compressFormat
+        this.isEnableSound = isEnableSound
     }
 
     interface CameraListener {
