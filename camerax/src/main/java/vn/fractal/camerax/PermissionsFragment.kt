@@ -37,7 +37,7 @@ class PermissionsFragment : Fragment() {
                 findNavController().navigate(R.id.cameraFragment)
             } else {
                 XCamera.instance.cameraListener?.onFailure("Permission request denied")
-                requireActivity().finish()
+                activity?.finish()
             }
         }
     }

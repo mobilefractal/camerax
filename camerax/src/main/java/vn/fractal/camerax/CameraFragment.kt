@@ -95,7 +95,7 @@ class CameraFragment : Fragment() {
                 }
                 else -> {
                     XCamera.instance.cameraListener?.onFailure("Back and front camera are unavailable")
-                    requireActivity().finish()
+                    activity?.finish()
                 }
             }
 
@@ -168,7 +168,7 @@ class CameraFragment : Fragment() {
 
                         override fun onError(exception: ImageCaptureException) {
                             XCamera.instance.cameraListener?.onFailure(exception.message)
-                            requireActivity().finish()
+                            activity?.finish()
                         }
                     })
 
@@ -188,7 +188,7 @@ class CameraFragment : Fragment() {
         // CameraProvider
         if(cameraProvider == null){
             XCamera.instance.cameraListener?.onFailure("Camera initialization failed.")
-            requireActivity().finish()
+            activity?.finish()
         }
 
         // CameraSelector
@@ -229,7 +229,7 @@ class CameraFragment : Fragment() {
             val msg = "Use case binding failed"
             Log.e(TAG, msg, exc)
             XCamera.instance.cameraListener?.onFailure(exc.message)
-            requireActivity().finish()
+            activity?.finish()
         }
     }
 

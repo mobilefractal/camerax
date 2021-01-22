@@ -14,7 +14,7 @@ This library use [CameraX](https://developer.android.com/training/camerax) API
 ```
 2) Add a dependency on the library:
 ```groovy
-          implementation 'com.github.mobilefractal:camerax:1.2.0'
+          implementation 'com.github.mobilefractal:camerax:1.3.0'
 ```
 3) Sets Java compatibility to Java 8:
 ```groovy

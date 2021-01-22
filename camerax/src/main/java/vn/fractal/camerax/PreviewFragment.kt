@@ -22,7 +22,7 @@ class PreviewFragment : Fragment() {
     private var path: String? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        requireActivity().onBackPressedDispatcher.addCallback {
+        activity?.onBackPressedDispatcher?.addCallback {
             File(path).delete()
             findNavController().navigate(R.id.cameraFragment)
         }
@@ -58,7 +58,7 @@ class PreviewFragment : Fragment() {
             it.delay()
             XCamera.instance.cameraListener?.onSuccess(path)
             XCamera.instance.cameraListener = null
-            requireActivity().finish()
+            activity?.finish()
         }
     }
 
