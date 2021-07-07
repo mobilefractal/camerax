@@ -4,6 +4,7 @@ import android.graphics.*
 import android.graphics.Paint.ANTI_ALIAS_FLAG
 import android.os.Build
 import androidx.exifinterface.media.ExifInterface
+import vn.fractal.camerax.Caption
 import vn.fractal.camerax.XCamera
 import java.io.File
 import java.io.IOException
@@ -20,8 +21,8 @@ class Utils {
                 BitmapFactory.Options().run {
                     val scaleBitmap = decodeSampledBitmapFromFile(file, 1024F, 1024F)
 
-                    XCamera.instance.imageCaption?.let {
-                        drawCaptionWithTime(scaleBitmap!!, it)
+                    if (!XCamera.instance.captions.isNullOrEmpty()) {
+                        drawCaptionWithTime(scaleBitmap!!, XCamera.instance.captions)
                     }
                     file.outputStream().use {
                         scaleBitmap?.compress(XCamera.instance.compressFormat, 80, it)
@@ -33,32 +34,23 @@ class Utils {
             }
         }
 
-        private fun drawCaptionWithTime(scaleBitmap: Bitmap, caption: String) {
+        private fun drawCaptionWithTime(scaleBitmap: Bitmap, captions: List<Caption>) {
             val cv = Canvas(scaleBitmap)
             cv.drawBitmap(scaleBitmap, 0f, 0f, null)
-            val paintText = Paint(ANTI_ALIAS_FLAG)
-            paintText.color = Color.RED
-            paintText.textSize = 17f
-            paintText.style = Paint.Style.FILL
-            val rectText = Rect()
-            paintText.getTextBounds(caption, 0, caption.length, rectText)
-
-            cv.drawText(
-                caption,
-                (cv.width / 2 - rectText.width() / 2) * 0.1.toFloat(),
-                (cv.height - rectText.height() / 3).toFloat() - 30f,
-                paintText
-            )
-            val paintTime = Paint(ANTI_ALIAS_FLAG)
-            paintTime.color = Color.YELLOW
-            paintTime.textSize = 15f
-            paintTime.style = Paint.Style.FILL
-            cv.drawText(
-                getTimeCurrent(),
-                (cv.width / 2 - rectText.width() / 2) * 0.1.toFloat(),
-                (cv.height - rectText.height() / 3).toFloat() - 10,
-                paintTime
-            )
+            for ((index, caption) in captions.withIndex()) {
+                val paintText = Paint(ANTI_ALIAS_FLAG)
+                paintText.color = caption.textColor
+                paintText.textSize = caption.textSize
+                paintText.style = Paint.Style.FILL
+                val rectText = Rect()
+                paintText.getTextBounds(caption.text, 0, caption.text.length, rectText)
+                cv.drawText(
+                    caption.text,
+                    (cv.width / 2 - rectText.width() / 2) * 0.1.toFloat(),
+                    (cv.height - rectText.height() / 3).toFloat() - (20f * (captions.size - index) + 10f),
+                    paintText
+                )
+            }
         }
 
         private fun getTimeCurrent(): String {

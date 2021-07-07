@@ -14,7 +14,7 @@ This library use [CameraX](https://developer.android.com/training/camerax) API
 ```
 2) Add a dependency on the library:
 ```groovy
-          implementation 'com.github.mobilefractal:camerax:1.3.0'
+          implementation 'com.github.mobilefractal:camerax:1.4.0'
 ```
 3) Sets Java compatibility to Java 8:
 ```groovy
@@ -31,21 +31,20 @@ This library use [CameraX](https://developer.android.com/training/camerax) API
 5) Start Camera in app:
 ```kotlin
         XCamera.instance.startCamera(
-                  this, object : XCamera.CameraListener {
-                      override fun onFailure(msg: String?) {
-                         TODO()
-                      }
+            this, object : XCamera.CameraListener {
+                override fun onSuccess(path: String?) {
+                }
 
-                      override fun onSuccess(path: String?) {
-                          TODO()
-                      }
-                  },
-                  //4 params are optional
-                  isBack = false, //default = true
-                  imagePath = "ImageFolderName",//default = "CameraX"
-                  imageCaption = "Mobile Fractal",//default = null
-                  isEnableSound = true,//default = false
-              )
+                override fun onFailure(msg: String?) {
+                }
+            },
+            isEnableSound = true,
+            captions = listOf(
+                Caption("Caption 1"),
+                Caption("Caption 2"),
+                Caption("Caption 3")
+            )
+        )
 ```
 
 Your captured image is saved in **Android/media/{applicationId}/{imagePath}/yyyy-MM-dd-HH-mm-ss-SSS.png**

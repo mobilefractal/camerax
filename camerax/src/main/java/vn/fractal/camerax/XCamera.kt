@@ -9,7 +9,7 @@ class XCamera private constructor() {
         val INSTANCE = XCamera()
     }
 
-    var imageCaption: String? = null
+    var captions: List<Caption> = emptyList()
     var cameraListener: CameraListener? = null
     var imagePath: String? = "CameraX"
     var compressFormat: Bitmap.CompressFormat = Bitmap.CompressFormat.JPEG
@@ -24,14 +24,14 @@ class XCamera private constructor() {
         listener: CameraListener,
         isBack: Boolean? = true,
         imagePath: String? = "CameraX",
-        imageCaption: String? = null,
+        captions: List<Caption> = emptyList(),
         compressFormat: Bitmap.CompressFormat = Bitmap.CompressFormat.JPEG,
         isEnableSound: Boolean? = false
     ) {
         CameraActivity.startCamera(context, isBack)
         this.cameraListener = listener
         this.imagePath = imagePath
-        this.imageCaption = imageCaption
+        this.captions = captions
         this.compressFormat = compressFormat
         this.isEnableSound = isEnableSound
     }
