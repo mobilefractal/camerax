@@ -1,5 +1,6 @@
 package vn.fractal.camerax.utils
 
+import android.content.res.Resources.getSystem
 import android.graphics.*
 import android.graphics.Paint.ANTI_ALIAS_FLAG
 import android.os.Build
@@ -46,7 +47,7 @@ class Utils {
                 paintText.getTextBounds(caption.text, 0, caption.text.length, rectText)
                 cv.drawText(
                     caption.text,
-                    (cv.width / 2 - rectText.width() / 2) * 0.1.toFloat(),
+                    8.toPx.toFloat(),
                     (cv.height - rectText.height() / 3).toFloat() - (20f * (captions.size - index) + 10f),
                     paintText
                 )
