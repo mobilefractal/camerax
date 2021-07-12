@@ -19,9 +19,8 @@ class MainActivity : AppCompatActivity() {
             },
             isEnableSound = true,
             captions = listOf(
-                Caption("Lorem Ipsum is simply dummy text of the printing and typesetting industry"),
+                Caption("Lorem Ipsum is simply dummy", textSize = 24f),
                 Caption("Lorem Ipsum is simply dummy text of the"),
-                Caption("Lorem Ipsum is simply dummy text of the printing and typesetting ")
             )
         )
     }

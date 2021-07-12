@@ -47,7 +47,7 @@ class Utils {
                 paintText.getTextBounds(caption.text, 0, caption.text.length, rectText)
                 cv.drawText(
                     caption.text,
-                    8.toPx.toFloat(),
+                    (cv.width - rectText.width()) / 2f,
                     (cv.height - rectText.height() / 3).toFloat() - (20f * (captions.size - index) + 10f),
                     paintText
                 )
