@@ -19,6 +19,9 @@ import androidx.core.content.ContextCompat
 import androidx.core.net.toFile
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import vn.fractal.camerax.utils.delay
 import java.io.File
 import java.text.SimpleDateFormat
@@ -163,7 +166,9 @@ class CameraFragment : Fragment() {
                                 )
                             }
 
-                            findNavController().navigate(R.id.previewFragment, bundle)
+                            CoroutineScope(Dispatchers.Main).launch {
+                                findNavController().navigate(R.id.previewFragment, bundle)
+                            }
                         }
 
                         override fun onError(exception: ImageCaptureException) {
