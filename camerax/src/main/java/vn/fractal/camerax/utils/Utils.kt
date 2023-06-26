@@ -31,7 +31,8 @@ class Utils {
                     }
                 }
             } catch (ex: Exception) {
-                XCamera.instance.cameraListener?.onFailure("Exception: ${ex.message}")
+                print("Resize Error: ${ex.message}")
+//                XCamera.instance.cameraListener?.onFailure("Exception: ${ex.message}")
             }
         }
 
