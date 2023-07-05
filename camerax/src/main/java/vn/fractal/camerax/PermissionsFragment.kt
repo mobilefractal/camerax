@@ -6,7 +6,7 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import androidx.navigation.fragment.findNavController
+import vn.fractal.camerax.utils.findNavControllerSafely
 
 private const val PERMISSIONS_REQUEST_CODE = 10
 private val PERMISSIONS_REQUIRED = arrayOf(Manifest.permission.CAMERA)
@@ -20,7 +20,7 @@ class PermissionsFragment : Fragment() {
             requestPermissions(PERMISSIONS_REQUIRED, PERMISSIONS_REQUEST_CODE)
         } else {
             // If permissions have already been granted, proceed
-            findNavController().navigate(R.id.cameraFragment)
+            findNavControllerSafely()?.navigate(R.id.cameraFragment)
         }
     }
 
@@ -34,7 +34,7 @@ class PermissionsFragment : Fragment() {
             if (PackageManager.PERMISSION_GRANTED == grantResults.firstOrNull()) {
                 // Take the user to the success fragment when permission is granted
                 //Toast.makeText(context, "Permission request granted", Toast.LENGTH_LONG).show()
-                findNavController().navigate(R.id.cameraFragment)
+                findNavControllerSafely()?.navigate(R.id.cameraFragment)
             } else {
                 XCamera.instance.cameraListener?.onFailure("Permission request denied")
                 activity?.finish()

@@ -18,11 +18,11 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.core.net.toFile
 import androidx.fragment.app.Fragment
-import androidx.navigation.fragment.findNavController
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import vn.fractal.camerax.utils.delay
+import vn.fractal.camerax.utils.findNavControllerSafely
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
@@ -119,7 +119,7 @@ class CameraFragment : Fragment() {
         val flashImageView = controls.findViewById<ImageView>(R.id.img_flash)
         flashImageView.setOnClickListener {
             val hasFlash = camera?.cameraInfo?.hasFlashUnit()
-            if (hasFlash!!) {
+            if (hasFlash == true) {
                 if (isTurnOnFlash) {
                     flashImageView.setImageResource(R.drawable.ic_flash_on_white)
                     isTurnOnFlash = false
@@ -167,13 +167,15 @@ class CameraFragment : Fragment() {
                             }
 
                             CoroutineScope(Dispatchers.Main).launch {
-                                findNavController().navigate(R.id.previewFragment, bundle)
+                                findNavControllerSafely()?.navigate(R.id.previewFragment, bundle)
                             }
                         }
 
                         override fun onError(exception: ImageCaptureException) {
-                            XCamera.instance.cameraListener?.onFailure(exception.message)
-                            activity?.finish()
+                            CoroutineScope(Dispatchers.Main).launch {
+                                XCamera.instance.cameraListener?.onFailure(exception.message)
+                                activity?.finish()
+                            }
                         }
                     })
 
@@ -191,7 +193,7 @@ class CameraFragment : Fragment() {
         val rotation = viewFinder.display.rotation
 
         // CameraProvider
-        if(cameraProvider == null){
+        if (cameraProvider == null) {
             XCamera.instance.cameraListener?.onFailure("Camera initialization failed.")
             activity?.finish()
         }
@@ -257,7 +259,7 @@ class CameraFragment : Fragment() {
         // user could have removed them while the app was in paused state.
         if (!PermissionsFragment.hasPermissions(requireContext())) {
             //findNavController().navigate(CameraFragmentDirections.actionCameraFragmentToPermissionsFragment())
-            findNavController().navigate(R.id.permissionsFragment)
+            findNavControllerSafely()?.navigate(R.id.permissionsFragment)
         }
     }
 

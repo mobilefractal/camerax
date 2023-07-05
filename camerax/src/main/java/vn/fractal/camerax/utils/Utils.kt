@@ -1,6 +1,6 @@
 package vn.fractal.camerax.utils
 
-import android.content.res.Resources.getSystem
+import android.annotation.SuppressLint
 import android.graphics.*
 import android.graphics.Paint.ANTI_ALIAS_FLAG
 import android.os.Build
@@ -8,7 +8,6 @@ import androidx.exifinterface.media.ExifInterface
 import vn.fractal.camerax.Caption
 import vn.fractal.camerax.XCamera
 import java.io.File
-import java.io.IOException
 import java.text.SimpleDateFormat
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -22,7 +21,7 @@ class Utils {
                 BitmapFactory.Options().run {
                     val scaleBitmap = decodeSampledBitmapFromFile(file, 1024F, 1024F)
 
-                    if (!XCamera.instance.captions.isNullOrEmpty()) {
+                    if (XCamera.instance.captions.isNotEmpty()) {
                         drawCaptionWithTime(scaleBitmap!!, XCamera.instance.captions)
                     }
                     file.outputStream().use {
@@ -55,6 +54,7 @@ class Utils {
             }
         }
 
+        @SuppressLint("SimpleDateFormat")
         private fun getTimeCurrent(): String {
             var answer = ""
             answer = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -62,7 +62,7 @@ class Utils {
                 val formatter = DateTimeFormatter.ofPattern("HH:mm:ss MM/dd/yyyy ")
                 current.format(formatter)
             } else {
-                var date = Date();
+                val date = Date();
                 val formatter = SimpleDateFormat("HH:mm:ss MM/dd/yyyy")
                 formatter.format(date)
             }
@@ -70,93 +70,60 @@ class Utils {
         }
 
 
-        @Throws(IOException::class)
+        @Throws(Exception::class)
         private fun decodeSampledBitmapFromFile(
             imageFile: File,
             reqWidth: Float,
             reqHeight: Float
         ): Bitmap? {
-            // First decode with inJustDecodeBounds=true to check dimensions
-            var scaledBitmap: Bitmap? = null
-            var bmp: Bitmap?
-            val options = BitmapFactory.Options()
-            options.inJustDecodeBounds = true
-            bmp = BitmapFactory.decodeFile(imageFile.absolutePath, options)
-            var actualHeight = options.outHeight
-            var actualWidth = options.outWidth
-            var imgRatio = actualWidth.toFloat() / actualHeight.toFloat()
+            val options = BitmapFactory.Options().apply {
+                inJustDecodeBounds = true
+                BitmapFactory.decodeFile(imageFile.absolutePath, this)
+            }
+
+            val actualHeight = options.outHeight
+            val actualWidth = options.outWidth
+            val imgRatio = actualWidth.toFloat() / actualHeight.toFloat()
             val maxRatio = reqWidth / reqHeight
+
+            var targetWidth = actualWidth
+            var targetHeight = actualHeight
+
             if (actualHeight > reqHeight || actualWidth > reqWidth) {
-                //If Height is greater
                 if (imgRatio < maxRatio) {
-                    imgRatio = reqHeight / actualHeight
-                    actualWidth = (imgRatio * actualWidth).toInt()
-                    actualHeight = reqHeight.toInt()
-                } //If Width is greater
-                else if (imgRatio > maxRatio) {
-                    imgRatio = reqWidth / actualWidth
-                    actualHeight = (imgRatio * actualHeight).toInt()
-                    actualWidth = reqWidth.toInt()
+                    targetWidth = (reqHeight / actualHeight * actualWidth).toInt()
+                    targetHeight = reqHeight.toInt()
+                } else if (imgRatio > maxRatio) {
+                    targetWidth = reqWidth.toInt()
+                    targetHeight = (reqWidth / actualWidth * actualHeight).toInt()
                 } else {
-                    actualHeight = reqHeight.toInt()
-                    actualWidth = reqWidth.toInt()
+                    targetWidth = reqWidth.toInt()
+                    targetHeight = reqHeight.toInt()
                 }
             }
 
-            // Calculate inSampleSize
-            options.inSampleSize = calculateInSampleSize(options, actualWidth, actualHeight)
+            options.inSampleSize = calculateInSampleSize(options, targetWidth, targetHeight)
             options.inJustDecodeBounds = false
             options.inTempStorage = ByteArray(16 * 1024)
-            try {
-                bmp = BitmapFactory.decodeFile(imageFile.absolutePath, options)
-            } catch (exception: OutOfMemoryError) {
-                exception.printStackTrace()
-                XCamera.instance.cameraListener?.onFailure("Exception: ${exception.message}")
-            }
-            try {
-                scaledBitmap =
-                    Bitmap.createBitmap(actualWidth, actualHeight, Bitmap.Config.RGB_565)
-            } catch (exception: OutOfMemoryError) {
-                exception.printStackTrace()
-                XCamera.instance.cameraListener?.onFailure(exception.message)
-            }
-            val ratioX = actualWidth / options.outWidth.toFloat()
-            val ratioY = actualHeight / options.outHeight.toFloat()
-            val middleX = actualWidth / 2.0f
-            val middleY = actualHeight / 2.0f
-            val scaleMatrix = Matrix()
-            scaleMatrix.setScale(ratioX, ratioY, middleX, middleY)
-            val canvas = Canvas(scaledBitmap!!)
-            canvas.setMatrix(scaleMatrix)
-            canvas.drawBitmap(
-                bmp!!, middleX - bmp.width / 2,
-                middleY - bmp.height / 2, Paint(Paint.FILTER_BITMAP_FLAG)
-            )
-            bmp.recycle()
-            val exif: ExifInterface
-            try {
-                exif = ExifInterface(imageFile.absolutePath)
-                val orientation = exif.getAttributeInt(
-                    ExifInterface.TAG_ORIENTATION,
-                    0
-                )
+
+            return try {
+                val bitmap = BitmapFactory.decodeFile(imageFile.absolutePath, options)
+                val scaledBitmap = Bitmap.createScaledBitmap(bitmap, targetWidth, targetHeight, true)
+                bitmap.recycle()
+
+                val exif = ExifInterface(imageFile.absolutePath)
+                val orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, 0)
                 val matrix = Matrix()
-                if (orientation == 6) {
-                    matrix.postRotate(90F)
-                } else if (orientation == 3) {
-                    matrix.postRotate(180F)
-                } else if (orientation == 8) {
-                    matrix.postRotate(270F)
+                when (orientation) {
+                    6 -> matrix.postRotate(90F)
+                    3 -> matrix.postRotate(180F)
+                    8 -> matrix.postRotate(270F)
                 }
-                scaledBitmap = Bitmap.createBitmap(
-                    scaledBitmap, 0, 0, scaledBitmap.width,
-                    scaledBitmap.height, matrix, true
-                )
-            } catch (e: IOException) {
+                Bitmap.createBitmap(scaledBitmap, 0, 0, scaledBitmap.width, scaledBitmap.height, matrix, true)
+            } catch (e: Exception) {
                 e.printStackTrace()
-                XCamera.instance.cameraListener?.onFailure("Exception: ${e.message}")
+                throw e
             }
-            return scaledBitmap
         }
 
         private fun calculateInSampleSize(

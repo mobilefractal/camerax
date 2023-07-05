@@ -16,6 +16,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import vn.fractal.camerax.utils.Utils
 import vn.fractal.camerax.utils.delay
+import vn.fractal.camerax.utils.findNavControllerSafely
 import java.io.File
 
 class PreviewFragment : Fragment() {
@@ -23,8 +24,8 @@ class PreviewFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         activity?.onBackPressedDispatcher?.addCallback {
-            File(path).delete()
-            findNavController().navigate(R.id.cameraFragment)
+            path?.let { File(it).delete() }
+            findNavControllerSafely()?.navigate(R.id.cameraFragment)
         }
     }
 
@@ -40,6 +41,10 @@ class PreviewFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         val args = arguments ?: return
         path = args.getString(CameraFragment.FILE_NAME_KEY)
+        if(path == null){
+            XCamera.instance.cameraListener?.onFailure("path file null!")
+            return
+        }
         val resource = path?.let { File(it) }
         CoroutineScope(Main).launch {
             view_loading.visibility = View.VISIBLE
@@ -50,7 +55,7 @@ class PreviewFragment : Fragment() {
 
         btn_cancel.setOnClickListener {
             it.delay()
-            File(path).delete()
+            path?.let { it1 -> File(it1).delete() }
             findNavController().navigate(R.id.cameraFragment)
         }
 

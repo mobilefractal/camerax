@@ -15,7 +15,7 @@ class CameraActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         isBack = intent?.getBooleanExtra(INTENT_IS_BACK, true)
-        requestWindowFeature(Window.FEATURE_NO_TITLE)
+        supportRequestWindowFeature(Window.FEATURE_NO_TITLE)
         window.setFlags(
             WindowManager.LayoutParams.FLAG_FULLSCREEN,
             WindowManager.LayoutParams.FLAG_FULLSCREEN
@@ -34,7 +34,7 @@ class CameraActivity : AppCompatActivity() {
         fun getOutputDirectory(context: Context): File {
             val appContext = context.applicationContext
             val mediaDir = context.externalMediaDirs.firstOrNull()?.let {
-                File(it, XCamera.instance.imagePath).apply { mkdirs() }
+                XCamera.instance.imagePath?.let { it1 -> File(it, it1).apply { mkdirs() } }
             }
             return if (mediaDir != null && mediaDir.exists())
                 mediaDir else appContext.filesDir
